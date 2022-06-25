@@ -1,0 +1,41 @@
+#
+# 開発環境の立ち上げ用
+#
+version: "3.7"
+
+x-app-base: &x-app-base
+  build: .
+  hostname: "app"
+  volumes:
+    - .:/usr/src/app
+    # './'が必要っぽい
+    - ./bundle:/bundle
+    - ./sprockets:/sprockets
+    # パーミッション問題対策
+    - /etc/passwd:/etc/passwd:ro
+    - /etc/group:/etc/group:ro
+  links:
+    - db
+
+services:
+  app:
+    <<: *x-app-base
+    ports: ["3000:3000"]
+    environment:
+      - PORT=3000
+      - SPROCKETS_CACHE=/sprockets
+    stdin_open: true
+    tty: true
+  db:
+    image: postgres:13.4
+    # for debug
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: trust
+
+volumes:
+  bundle:
+    driver: local
+  sprockets:
+    driver: local
